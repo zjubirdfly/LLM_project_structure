@@ -1,0 +1,24 @@
+[project]
+name = "llm_project_structure"
+version = "0.1.0"
+description = "Reusable framework for LLM-based fast demos"
+authors = [
+    { name = "xin li", email = "zjulixin@gmail.com" }
+]
+license = "MIT"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "openai",
+    "google-generativeai",
+    "python-dotenv",
+    "pyngrok",
+    "pydantic",
+    "pydantic-settings"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

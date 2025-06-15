@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+openai
+google-generativeai
+python-dotenv
+python_version >= "3.10"
+pyngrok
+pydantic
+pydantic-settings

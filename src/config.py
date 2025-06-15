@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     vapi_base_url: str = Field(..., alias="VAPI_BASE_URL", description="Base URL for the VAPI service")
     vapi_api_key: str = Field(..., alias="VAPI_API_KEY", description="API key for VAPI authentication")
     openai_api_key: str = Field(..., alias="OPENAI_API_KEY", description="API key for OpenAI services")
-
+    google_api_key: str = Field(..., alias="GOOGLE_API_KEY", description="API key for Google services")
+    
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding='utf-8',
@@ -25,3 +26,5 @@ class Settings(BaseSettings):
 
 # Create a singleton settings object
 settings = Settings() 
+
+env_file = ".env"

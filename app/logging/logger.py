@@ -1,10 +1,10 @@
-from service.util.constants import LOGGING_PARENT_FOLDER, LOGGING_SERVICE_NAME
 from loguru import logger as loguru_logger
 from typing import Dict, Any
 import re
 from pathlib import Path
 import sys
 import json
+from app.core.config import settings
 
 class Logger:
     @staticmethod
@@ -41,7 +41,7 @@ class Logger:
     
     @staticmethod
     def log_json(folder: str, file_prefix: str, data: Dict[str, Any]) -> str:
-        full_folder = Path(LOGGING_PARENT_FOLDER) / Path(folder)
+        full_folder = Path(settings.logging_parent_folder) / Path(folder)
         log_file = Logger.get_next_filename(str(full_folder), file_prefix)
         
         # this saves the raw json string to the file without extra formatting from loguru

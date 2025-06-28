@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     vapi_api_key: str = Field("", alias="VAPI_API_KEY", description="API key for VAPI authentication")
     openai_api_key: str = Field("", alias="OPENAI_API_KEY", description="API key for OpenAI services")
     google_api_key: str = Field("", alias="GOOGLE_API_KEY", description="API key for Google services")
+    logging_parent_folder: str = Field("app/service/logging/", alias="LOGGING_PARENT_FOLDER", description="Parent folder for application logs")
+    logging_service_name: str = Field("testService", alias="LOGGING_SERVICE_NAME", description="Name of the service for logging")
     
     model_config = SettingsConfigDict(
         env_file='.env',

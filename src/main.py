@@ -3,8 +3,8 @@ from typing import List, Tuple
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from src.config import settings
-from src.api.v1.request.routes import router as vapi_router
+from .config import settings
+from .api.v1.request.routes import router as request_router
 
 # Configure logging
 logging.basicConfig(
@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
         version="1.0.0"
     )
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-    app.include_router(vapi_router, prefix="/vapi", tags=["VAPI"])
+    app.include_router(request_router, prefix="/api/v1", tags=["Request"])
     return app
 
 def list_routes(app: FastAPI) -> List[Tuple[str, str]]:

@@ -13,9 +13,8 @@ class OutboundRequest(BaseModel):
     assistantId: str
     customerNumber: str
 
-@router.post("/outbound")
+@router.post("/outbound", tags="OutBound")
 async def outbound(request: OutboundRequest):
-    print(settings.vapi_api_key)
     try:
         url = f"{settings.vapi_base_url}/call"
         headers = {

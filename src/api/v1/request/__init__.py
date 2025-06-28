@@ -1,3 +1,0 @@
-"""
-Request package initialization.
-""" 

@@ -1,3 +1,0 @@
-"""
-VAPI package initialization.
-"""

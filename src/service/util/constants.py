@@ -1,2 +1,0 @@
-LOGGING_PARENT_FOLDER = "logs"
-LOGGING_SERVICE_NAME = "llm_demo"

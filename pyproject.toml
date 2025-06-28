@@ -7,6 +7,9 @@ authors = [
 ]
 license = "MIT"
 requires-python = ">=3.10"
+vapi-server-sdk = "^1.5.0"
+
+packages = [{ include = "app" }]
 
 dependencies = [
     "fastapi",
@@ -16,9 +19,14 @@ dependencies = [
     "python-dotenv",
     "pyngrok",
     "pydantic",
-    "pydantic-settings"
+    "pydantic-settings",
+    "httpx",
+    "loguru"
 ]
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false

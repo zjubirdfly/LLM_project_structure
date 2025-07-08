@@ -9,7 +9,6 @@ from app.services.vapi_assistant_generator import VapiAssistantGenerator as Assi
 from app.services.user.user_info import UserInfo
 
 router = APIRouter()
-user_records = UserRecords()
 assistant_generator = AssistantGenerator()
 
 @router.post("assistant", tags=["Assistant"])

@@ -29,4 +29,4 @@ async def assistant_request(request: Request):
         call_id
     )
     Logger.log_json("vapi/assistant", "response", assistant_config)
-    return assistant_config
+        return assistant_config

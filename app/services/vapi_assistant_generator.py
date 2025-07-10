@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any
 class VapiAssistantGenerator:
     def __init__(self):
         """Initialize the generator without loading templates."""
+        pass
 
     def generate_assistant_by_customer_phone_number(self, customer_phone_number: str, call_id: Optional[str] = None) -> str:
         user_info = self._load_user_info_from_phone_number(customer_phone_number)

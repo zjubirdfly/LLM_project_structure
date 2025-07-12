@@ -9,6 +9,19 @@ class WelcomeHandler(ConversationStateHandler):
     """
     intent = ConversationIntent.WELCOME
 
+    WELCOME_STATE_TRANSFER_PROMPT = """
+    You are an expert conversational AI designed to determine the current state of a user's intent based on the ongoing dialogue. Your goal is to identify the most accurate and specific conversational state from a predefined list.
+
+Here is the conversation history:
+<CONVERSATION_HISTORY>
+
+Here is the list of possible conversational states:
+<POSSIBLE_STATES>
+
+Analyze the entire conversation history. Identify the single best conversational state that most accurately reflects the user's current intent and the overall topic of discussion.
+
+Provide only the name of the identified state. Do not include any other text, explanations, or reasoning.
+"""
 
     def __init__(self, llm_model:BaseLLM):
         super().__init__(llm_model)

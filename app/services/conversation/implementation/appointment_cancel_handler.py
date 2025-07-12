@@ -22,8 +22,8 @@ class AppointmentCancelHandler(ConversationStateHandler):
 
     def is_terminal_state(self) -> bool:
         # TODO: Implement logic to check if this is a terminal state for this intent
-        pass
+        return False
 
     def is_init_state(self) -> bool:
         # TODO: Implement logic to check if this is the initial state for this intent
-        pass
+        return False

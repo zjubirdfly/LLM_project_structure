@@ -1,23 +1,4 @@
 from typing import Optional, Dict, Any, List
-from vapi import Vapi
-from app.core.config import settings
-
-vapi_client = Vapi(token=settings.vapi_api_key)
-
-def get_call_info_from_call_id(call_id: str) -> Optional[Dict[str, Any]]:
-    """Get call info from a VAPI call id using the latest SDK."""
-    try:
-        return vapi_client.calls.get(id=call_id)
-    except Exception as e:
-        print(f"Error getting call info: {str(e)}")
-        return None
-    
-def get_call_monitor_info_from_call_id(call_id: str) -> Optional[Dict[str, Any]]:
-    """Get call monitor info from a VAPI call id."""
-    call = get_call_info_from_call_id(call_id)
-    if call and "monitor" in call:
-        return call["monitor"]
-    return None
 
 def extract_customer_number(data: Dict[str, Any]) -> Optional[str]:
     """Extract customer number from a VAPI webhook message."""

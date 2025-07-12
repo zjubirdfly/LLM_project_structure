@@ -46,15 +46,3 @@ class GeminiLLM(BaseLLM):
     def generate(self, prompt: str) -> str:
         response = self.model.generate_content(prompt)
         return response.text.strip()
-
-
-def generate_response(prompt: str, model_id: str) -> str:
-    """Factory interface to get response from a selected model."""
-    if model_id.startswith("gpt"):
-        llm = GPTLLM(model_id)
-    elif model_id.startswith("gemini"):
-        llm = GeminiLLM(model_id)
-    else:
-        raise ValueError(f"Unsupported model ID: {model_id}")
-    
-    return llm.generate(prompt)

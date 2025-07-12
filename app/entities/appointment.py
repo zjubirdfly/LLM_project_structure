@@ -1,11 +1,14 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
-class UserScheduleHistory(BaseModel):
-    user_id: str
-    appointments: List[Dict[str, Any]] = []
-
-class OpenAppointmentSlot(BaseModel):
+class Appointment(BaseModel):
     start_time: str
     end_time: str
-    is_available: bool = True 
+    name: str
+
+class UserScheduleHistory(BaseModel):
+    user_id: str
+    appointments: List[Appointment] = []
+
+class OpenAppointmentSlots(BaseModel):
+    appointments: List[Appointment]

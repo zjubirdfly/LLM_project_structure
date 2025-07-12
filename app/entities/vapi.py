@@ -64,4 +64,4 @@ class ChatRequest(BaseModel):
     call: Call
     phoneNumber: Optional[PhoneNumber] = None
     customer: Optional[Customer] = None
-    metadata: Dict[str, Any] 
+    metadata: Dict[str, Any]

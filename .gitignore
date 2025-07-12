@@ -3,3 +3,7 @@ debug.py
 service/logging/**/*.json
 __pycache__/
 .DS_Store
+Test.md
+.venv/
+poetry.lock
+debug

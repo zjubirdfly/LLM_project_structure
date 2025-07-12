@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.core.config import settings
 from app.api.v1.outbound import router as outbound_router
+from app.api.v1.custom_llm_request_handler import router as custom_llm_request_handler_router
 
 # Configure logging
 logging.basicConfig(
@@ -35,7 +36,7 @@ def create_app() -> FastAPI:
     
     # Include routers
     app.include_router(outbound_router, prefix="/api/v1", tags=["Outbound"])
-    
+    app.include_router(custom_llm_request_handler_router, tags=["Custom LLM Request Handler"])
     return app
 
 def list_routes(app: FastAPI) -> List[Tuple[str, str]]:

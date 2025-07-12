@@ -7,3 +7,7 @@ Test.md
 .venv/
 poetry.lock
 debug
+*.md
+debug*
+test*
+Test*

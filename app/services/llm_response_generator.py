@@ -24,9 +24,19 @@ class LlmResponseGenerator:
         latest_state = ConversationStateHandlerBase.get_handler(current_state, llm_model = GeminiLLM())
         
         self.conversation_manager.update_conversation_state(call_id, latest_state)
-        return StreamingResponse(
-                f"data: {json.dumps({'error'})}\n\n", media_type="text/event-stream"
+        return ConversationStateHandlerBase.get_handler(
+            current_state, llm_model=GeminiLLM()).generate_response(
+                {
+                    "request": chat_request,
+                    "user_appointments": user_latest_appointment,
+                    "user_info": user_info,
+                    "open_appointments": self._load_open_appointment(),
+                }
             )
+
+        # return StreamingResponse(
+        #         f"data: {json.dumps({'error'})}\n\n", media_type="text/event-stream"
+        #     )
         
         #TODO: FIX THE LOGIC HERE.
         # try:
@@ -86,7 +96,7 @@ class LlmResponseGenerator:
         ]
         return UserScheduleHistory(user_id=user_id, appointments=fake_appintments)
 
-    def _load_open_appointment(self, user: UserInfo) -> OpenAppointmentSlots:
+    def _load_open_appointment(self) -> OpenAppointmentSlots:
         # TODO: Implement loading available appointment windows from a database or storage
         # For now, returning a placeholder
         start_date = datetime(2025, 8, 11)

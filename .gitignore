@@ -11,3 +11,4 @@ debug
 debug*
 test*
 Test*
+.vscode/*

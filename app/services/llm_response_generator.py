@@ -1,4 +1,9 @@
-from app.entities import UserInfo, UserScheduleHistory, OpenAppointmentSlots, Appointment
+from app.entities import (
+    UserInfo,
+    UserScheduleHistory,
+    OpenAppointmentSlots,
+    Appointment,
+)
 from typing import Optional, List, Dict, Any
 import json
 from starlette.responses import StreamingResponse
@@ -7,91 +12,102 @@ import random
 from app.entities.vapi import ChatRequest
 from .conversation import conversation_manager
 from .conversation import ConversationStateHandlerBase
-from app.llm_agents import GeminiLLM, BaseLLM
+from app.llm_agents import gemini
+from app.services.conversation.implementation import *
+
 
 class LlmResponseGenerator:
     def __init__(self):
         """Initialize the generator without loading templates."""
         self.conversation_manager = conversation_manager
-    
-    async def generate_custom_llm_response(self, chat_request: ChatRequest) -> StreamingResponse:
+
+    async def generate_custom_llm_response(
+        self, chat_request: ChatRequest
+    ) -> StreamingResponse:
         phone_number = chat_request.phoneNumber
         call_id = chat_request.call.id
         user_info = self._load_user_info_from_phone_number(phone_number)
-        user_appointments = self._load_current_appointment_from_user_id(user_info.user_id)
+        user_appointments = self._load_current_appointment_from_user_id(
+            user_info.user_id
+        )
         user_latest_appointment = user_appointments.appointments[-1]
-        current_state = self.conversation_manager.get_conversation_state(call_id)["ConversationIntent"]
-        latest_state = ConversationStateHandlerBase.get_handler(current_state, llm_model = GeminiLLM())
-        
+        current_state = self.conversation_manager.get_conversation_state(call_id)[
+            "ConversationIntent"
+        ]
+        handler = welcome_handler
+        latest_state = handler.get_next_state({"request": chat_request})
+        print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(call_id, latest_state)
-        return ConversationStateHandlerBase.get_handler(
-            current_state, llm_model=GeminiLLM()).generate_response(
+
+        try:
+            response = await handler.generate_response(
                 {
                     "request": chat_request,
                     "user_appointments": user_latest_appointment,
                     "user_info": user_info,
-                    "open_appointments": self._load_open_appointment(),
                 }
             )
+            print(
+                f"DEBUG: Type after await handler.generate_response: {type(response)}"
+            )
 
-        # return StreamingResponse(
-        #         f"data: {json.dumps({'error'})}\n\n", media_type="text/event-stream"
-        #     )
-        
-        #TODO: FIX THE LOGIC HERE.
-        # try:
-        #     response = await client.chat.completions.create(
-        #         model=vapi_payload.model,
-        #         messages=vapi_payload.messages,
-        #         temperature=vapi_payload.temperature,
-        #         tools=vapi_payload.tools,
-        #         stream=True,
-        #     )
+            async def event_stream():
+                try:
+                    async for chunk in response:
+                        yield f"data: {json.dumps(chunk.text())}\n\n"
+                    yield "data: [DONE]\n\n"
+                except Exception as e:
+                    print(f"Error during response streaming: {e}")
+                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-        #     async def event_stream():
-        #         try:
-        #             async for chunk in response:
-        #                 yield f"data: {json.dumps(chunk.model_dump())}\n\n"
-        #             yield "data: [DONE]\n\n"
-        #         except Exception as e:
-        #             print(f"Error during response streaming: {e}")
-        #             yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return StreamingResponse(event_stream(), media_type="text/event-stream")
 
-        #     return StreamingResponse(event_stream(), media_type="text/event-stream")
+        except Exception as e:
+            print(
+                f"Error during overall response generation: {e}"
+            )  # Changed message for clarity
+            return StreamingResponse(
+                f"data: {json.dumps({'error': str(e)})}\n\n",
+                media_type="text/event-stream",
+            )
 
-        # except Exception as e:
-        #     print(f"Error during response streaming: {e}")
-        #     return StreamingResponse(
-        #         f"data: {json.dumps({'error': str(e)})}\n\n", media_type="text/event-stream"
-        #     )
-
-
-    def _load_user_info_from_phone_number(self, phone_number:str) -> Optional[UserInfo]:
+    def _load_user_info_from_phone_number(
+        self, phone_number: str
+    ) -> Optional[UserInfo]:
         # TODO: Implement actual fetching from a database or storage
         # For now, returning a placeholder UserInfo object
         # user_info = self.user_records.get_user_by_phone(phone_number)
         # if user_info:
         #     return UserInfo(**user_info) # Assuming get_user_by_phone returns a dict
-        return UserInfo(user_id="test_123", phone=phone_number, first_name="Robert", last_name="Benea", nickname="Robert", email="Robert@gmail.com")
+        return UserInfo(
+            user_id="test_123",
+            phone="+1234567890",
+            first_name="Robert",
+            last_name="Benea",
+            nickname="Robert",
+            email="Robert@gmail.com",
+        )
 
-    def _load_current_appointment_from_user_id(self, user_id: str) -> Optional[UserScheduleHistory]:
+    def _load_current_appointment_from_user_id(
+        self, user_id: str
+    ) -> Optional[UserScheduleHistory]:
         # TODO: Implement fetching user's current appointment from a database or storage
         # For now, returning a placeholder
         fake_appintments = [
             Appointment(
                 start_time="2024-04-11T09:00",
                 end_time="2024-04-11T09:30",
-                name="Teeth cleaning"
+                name="Teeth cleaning",
             ),
             Appointment(
                 start_time="2025-01-11T10:00",
                 end_time="2025-01-11T11:00",
-                name="Teeth cleaning"
+                name="Teeth cleaning",
             ),
             Appointment(
                 start_time="2025-08-11T13:00",
                 end_time="2025-08-11T13:30",
-                name="Teeth cleaning"
+                name="Teeth cleaning",
             ),
         ]
         return UserScheduleHistory(user_id=user_id, appointments=fake_appintments)
@@ -101,7 +117,7 @@ class LlmResponseGenerator:
         # For now, returning a placeholder
         start_date = datetime(2025, 8, 11)
         end_date = datetime(2025, 8, 25)
-        
+
         appointments = []
         for _ in range(10):
             # Pick a random date between 8/11 and 8/25
@@ -116,10 +132,12 @@ class LlmResponseGenerator:
             # Slot duration: 30 minutes
             end_time = start_time + timedelta(minutes=30)
 
-            appointments.append(Appointment(
-                start_time=start_time.isoformat(),
-                end_time=end_time.isoformat(),
-                name="Available Slot"
-            ))
+            appointments.append(
+                Appointment(
+                    start_time=start_time.isoformat(),
+                    end_time=end_time.isoformat(),
+                    name="Available Slot",
+                )
+            )
 
         return OpenAppointmentSlots(appointments=appointments)

@@ -9,5 +9,4 @@ cache_manager = SimpleCacheManager()
 
 __all__ = [
     "cache_manager",
-    "SimpleCacheManager"
-] 
+]

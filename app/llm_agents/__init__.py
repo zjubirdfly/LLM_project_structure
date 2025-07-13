@@ -1,3 +1,7 @@
-from .llm import BaseLLM, GPTLLM, GeminiLLM
+from .llm import GeminiLLM
 
-__all__ = ["BaseLLM", "GPTLLM", "GeminiLLM"]
+gemini = GeminiLLM()
+
+__all__ = [
+    "gemini",
+    "GeminiLLM"]

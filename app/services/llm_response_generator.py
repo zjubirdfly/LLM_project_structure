@@ -9,11 +9,13 @@ import json
 from starlette.responses import StreamingResponse
 from datetime import datetime, timedelta
 import random
-from app.entities.vapi import ChatRequest
+import app.entities.vapi
 from .conversation import conversation_manager
 from .conversation import ConversationStateHandlerBase
 from app.llm_agents import gemini
 from app.services.conversation.implementation import *
+from google.genai.types import GenerateContentResponse
+from app.entities.vapi import ChatRequest
 
 
 class LlmResponseGenerator:
@@ -39,37 +41,51 @@ class LlmResponseGenerator:
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(call_id, latest_state)
 
-        try:
-            response = await handler.generate_response(
-                {
-                    "request": chat_request,
-                    "user_appointments": user_latest_appointment,
-                    "user_info": user_info,
-                }
-            )
-            print(
-                f"DEBUG: Type after await handler.generate_response: {type(response)}"
-            )
+        # try:
+        response_stream = await handler.generate_response(
+            {
+                "request": chat_request,
+                "user_appointments": user_latest_appointment,
+                "user_info": user_info,
+            }
+        )
 
-            async def event_stream():
-                try:
-                    async for chunk in response:
-                        yield f"data: {json.dumps(chunk.text())}\n\n"
-                    yield "data: [DONE]\n\n"
-                except Exception as e:
-                    print(f"Error during response streaming: {e}")
-                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        async def event_stream():
+            # try:
+            for chunk in response_stream:
+                chunk_text = self._extend_context_from_chunk(chunk)
+                if chunk_text:
+                    print(f"Chunk text: {chunk_text}")
+                    yield f"data: {json.dumps(chunk.model_dump())}\n\n"
+                yield "data: [DONE]\n\n"  # Signal end of stream
 
-            return StreamingResponse(event_stream(), media_type="text/event-stream")
+        # except Exception as e:
+        #     print(f"Error during response streaming: {e}")
+        #     yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-        except Exception as e:
-            print(
-                f"Error during overall response generation: {e}"
-            )  # Changed message for clarity
-            return StreamingResponse(
-                f"data: {json.dumps({'error': str(e)})}\n\n",
-                media_type="text/event-stream",
-            )
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+        )
+
+        # except Exception as e:
+        #     print(f"Error during overall response generation: {e}")
+        #     return StreamingResponse(
+        #         f"data: {json.dumps({'error': str(e)})}\n\n",
+        #         media_type="text/event-stream",
+        #     )
+
+    def _extend_context_from_chunk(self, chunk: GenerateContentResponse) -> str:
+        if (
+            chunk.candidates
+            and chunk.candidates[0].content
+            and chunk.candidates[0].content.parts
+        ):
+            # Assuming the text is in the first part of the first candidate
+            for part in chunk.candidates[0].content.parts:
+                if part.text:
+                    return part.text
+        return ""
 
     def _load_user_info_from_phone_number(
         self, phone_number: str

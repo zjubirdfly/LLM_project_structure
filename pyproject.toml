@@ -21,7 +21,8 @@ dependencies = [
     "pydantic-settings",
     "httpx",
     "loguru",
-    "vapi-server-sdk==1.5.0"
+    "vapi-server-sdk==1.5.0",
+    "openai"
 ]
 
 [build-system]

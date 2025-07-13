@@ -2,8 +2,9 @@ from typing import Dict
 import os
 
 import json
-import google.generativeai as genai
+from google import genai
 from app.core.config import settings
+from openai import AsyncOpenAI
 
 # class BaseLLM(ABC):
 #     """Abstract base class for all LLMs."""
@@ -17,45 +18,30 @@ from app.core.config import settings
 #         pass
 
 
-# class GPTLLM(BaseLLM):
-#     """LLM wrapper for OpenAI's GPT models."""
+class GPTLLM:
+    """LLM wrapper for OpenAI's GPT models."""
 
-#     def __init__(self, model_id: str):
-#         self.model_id = model_id
-#         self.api_key = os.environ.get("OPENAI_API_KEY", "")
-#         if not self.api_key:
-#             raise ValueError("OPENAI_API_KEY is not set in environment variables.")
-#         openai.api_key = self.api_key
+    def __init__(self):
+        self.api_key = settings.openai_api_key
+        if not self.api_key:
+            raise ValueError("OPENAI_API_KEY is not set in environment variables.")
+        print(f"open ai api_key: {self.api_key}")
+        self.client = AsyncOpenAI(api_key=self.api_key)
 
-#     def generate_response(self, prompt: str) -> str:
-#         response = openai.ChatCompletion.create(
-#             model=self.model_id,
-#             messages=[{"role": "user", "content": prompt}]
-#         )
-#         return response.choices[0].message.content.strip()
+    def generate_response(self, model_id: str, system_prompt: str, user_prompt: str):
+        return self.client.chat.completions.create(
+            model=model_id,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.7,
+            stream=True,
+        )
 
-#     def generate_next_state(self, prompt: str) -> Optional[str]:
-#         try:
-#             response = openai.ChatCompletion.create(
-#                 model=self.model,
-#                 messages=[
-#                     {"role": "system", "content": "You are a helpful assistant."},
-#                     {"role": "user", "content": prompt}
-#                 ],
-#                 temperature=0,
-#                 response_format="json"  # Requires GPT-4 or GPT-3.5-Turbo with function calling or JSON mode
-#             )
-
-#             content = response.choices[0].message.content
-#             data = json.loads(content)
-
-#             # Optional: validate the result
-#             assert "state" in data, "Missing 'state' in model output"
-#             return data["state"]
-
-#         except Exception as e:
-#             print(f"Error generating next state: {e}")
-#             return "welcome"  # default fallback
+    def generate_next_state(self, prompt: str) -> str:
+        # TODO: Implement logic to generate the next state based on the prompt
+        return "welcome"
 
 
 class GeminiLLM:
@@ -65,13 +51,14 @@ class GeminiLLM:
         self.api_key = settings.google_api_key
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY is not set in environment variables.")
-        print(f"api_key: {self.api_key}")
-        genai.configure(api_key=self.api_key)
+        print(f"gemini api_key: {self.api_key}")
+        self.client = genai.Client(api_key=self.api_key)
 
     def generate_response(self, model_id: str, prompt: str):
-        model = genai.GenerativeModel(model_id)
-        result = model.generate_content(prompt, stream=True)
-        print(f"DEBUG: Type from model.generate_content: {type(result)}")
+        result = self.client.models.generate_content_stream(
+            model=model_id, contents=[prompt]
+        )
+        print(f"DEBUG: client.generate_content: {result}")
         return result
 
     def generate_next_state(

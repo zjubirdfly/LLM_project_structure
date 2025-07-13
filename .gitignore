@@ -1,6 +1,6 @@
 .env
 debug.py
-app/service/logging/**/*.json
+app/services/logging/**/*.json
 __pycache__/
 .DS_Store
 Test.md

@@ -5,6 +5,7 @@ import json
 from google import genai
 from app.core.config import settings
 from openai import AsyncOpenAI
+from google.genai.types import GenerateContentResponse
 
 # class BaseLLM(ABC):
 #     """Abstract base class for all LLMs."""
@@ -54,18 +55,35 @@ class GeminiLLM:
         print(f"gemini api_key: {self.api_key}")
         self.client = genai.Client(api_key=self.api_key)
 
-    def generate_response(self, model_id: str, prompt: str):
-        result = self.client.models.generate_content_stream(
+    async def generate_response(self, model_id: str, prompt: str):
+        response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id, contents=[prompt]
         )
-        print(f"DEBUG: client.generate_content: {result}")
-        return result
+        generated_text = ""
+        if (
+            response.candidates
+            and response.candidates[0].content
+            and response.candidates[0].content.parts
+        ):
+            for part in response.candidates[0].content.parts:
+                if part.text:
+                    generated_text += part.text
+        else:
+            print("Warning: No text content found in the non-streaming response.")
 
-    def generate_next_state(
+        return generated_text
+
+    async def generate_next_state(
         self, model_id: str, prompt: str, output_schema: Dict
     ) -> str:
-        model = genai.GenerativeModel(
-            model_name=model_id,
+        generation_config = {
+            "max_output_tokens": 200,
+            "response_mime_type": "application/json",
+            "response_schema": output_schema,
+        }
+        model = self.client.models.generate_content(
+            model=model_id,
+            contents=[prompt],
             generation_config={
                 "response_mime_type": "application/json",
                 "response_schema": output_schema,

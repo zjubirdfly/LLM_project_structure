@@ -113,7 +113,7 @@ class WelcomeHandler(ConversationStateHandlerBase):
                 self._appointment_to_string(user_latest_appointment),
             )
         )
-        result = gemini.generate_response(model_id=self.model_id, prompt=prompt)
+        result = await gemini.generate_response(model_id=self.model_id, prompt=prompt)
         print(f"DEBUG: result: {result}")
 
         return result

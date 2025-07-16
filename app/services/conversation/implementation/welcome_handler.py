@@ -9,12 +9,18 @@ from app.entities.vapi import ChatRequest
 from app.llm_agents import gemini
 
 
+@ConversationStateHandlerBase.register(ConversationIntent.WELCOME)
 class WelcomeHandler(ConversationStateHandlerBase):
     """
     Handler for the welcome state of the conversation.
     """
 
     intent = ConversationIntent.WELCOME
+
+    @ConversationStateHandlerBase.register(intent)
+    class Handler1(ConversationStateHandlerBase):
+        def WelcomeHandler(self):
+            return "Handler 1 handling"
 
     _WELCOME_STATE_TRANSFER_PROMPT = """
         You are an expert conversational AI designed to determine the user's current intent based on the ongoing dialogue. Your goal is to select the most accurate and specific conversational state from a predefined list.
@@ -79,7 +85,7 @@ class WelcomeHandler(ConversationStateHandlerBase):
     ):
         super().__init__(model_id)
 
-    def get_next_state(self, request: Dict[str, Any]) -> ConversationIntent:
+    async def get_next_state(self, request: Dict[str, Any]) -> ConversationIntent:
         chat_request: ChatRequest = request["request"]
         has_user_message = any(m.role == "user" for m in chat_request.messages)
         if not has_user_message:

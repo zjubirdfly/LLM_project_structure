@@ -37,7 +37,7 @@ class LlmResponseGenerator:
         current_state = self.conversation_manager.get_conversation_state(call_id)[
             "ConversationIntent"
         ]
-        handler = welcome_handler
+        handler = ConversationStateHandlerBase.get_handler(current_state)
         latest_state = handler.get_next_state({"request": chat_request})
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(call_id, latest_state)

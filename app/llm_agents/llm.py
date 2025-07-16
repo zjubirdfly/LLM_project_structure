@@ -76,18 +76,23 @@ class GeminiLLM:
     async def generate_next_state(
         self, model_id: str, prompt: str, output_schema: Dict
     ) -> str:
-        generation_config = {
-            "max_output_tokens": 200,
-            "response_mime_type": "application/json",
-            "response_schema": output_schema,
-        }
-        model = self.client.models.generate_content(
+        response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id,
             contents=[prompt],
-            generation_config={
+            config={
                 "response_mime_type": "application/json",
                 "response_schema": output_schema,
             },
         )
-        response = model.generate_content(prompt)
-        return json.loads(response.text)["state"]
+        generated_text = ""
+        if (
+            response.candidates
+            and response.candidates[0].content
+            and response.candidates[0].content.parts
+        ):
+            for part in response.candidates[0].content.parts:
+                if part.text:
+                    generated_text += part.text
+        else:
+            print("Warning: No text content found in the non-streaming response.")
+        return json.loads(generated_text)["state"]

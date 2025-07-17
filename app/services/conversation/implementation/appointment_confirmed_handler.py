@@ -6,7 +6,6 @@ from app.llm_agents import GPTLLM, GeminiLLM
 from app.services.conversation import ConversationIntent
 
 
-@ConversationStateHandlerBase.register(ConversationIntent.APPOINTMENT_CONFIRMED)
 class AppointmentConfirmedHandler(ConversationStateHandlerBase):
     """
     Handler for the 'other' intent of the conversation.
@@ -20,18 +19,20 @@ class AppointmentConfirmedHandler(ConversationStateHandlerBase):
     ):
         super().__init__(model_id)
 
-    def get_next_state(self, request: Dict[str, Any]) -> str:
-        # TODO: Implement logic to determine the next state for this intent
+    @property
+    def state_transfer_prompt_template(self) -> str:
         pass
 
-    def generate_response(self, request: Dict[str, Any]) -> str:
-        # TODO: Implement logic to generate a response for this intent
+    @property
+    def response_prompt_template(self) -> str:
+        pass
+
+    @property
+    def potential_next_state(self) -> List[str]:
         pass
 
     def is_terminal_state(self) -> bool:
-        # TODO: Implement logic to check if this is a terminal state for this intent
         return False
 
     def is_init_state(self) -> bool:
-        # TODO: Implement logic to check if this is the initial state for this intent
         return False

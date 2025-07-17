@@ -6,17 +6,7 @@ from google import genai
 from app.core.config import settings
 from openai import AsyncOpenAI
 from google.genai.types import GenerateContentResponse
-
-# class BaseLLM(ABC):
-#     """Abstract base class for all LLMs."""
-
-#     @abstractmethod
-#     def generate_response(self, prompt: str) -> str:
-#         pass
-
-#     @abstractmethod
-#     def generate_next_state(self, prompt: str) -> Optional[str]:
-#         pass
+import textwrap
 
 
 class GPTLLM:
@@ -33,8 +23,8 @@ class GPTLLM:
         return self.client.chat.completions.create(
             model=model_id,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
+                {"role": "system", "content": textwrap.dedent(system_prompt)},
+                {"role": "user", "content": textwrap.dedent(user_prompt)},
             ],
             temperature=0.7,
             stream=True,
@@ -57,7 +47,7 @@ class GeminiLLM:
 
     async def generate_response(self, model_id: str, prompt: str):
         response: GenerateContentResponse = self.client.models.generate_content(
-            model=model_id, contents=[prompt]
+            model=model_id, contents=[textwrap.dedent(prompt)]
         )
         generated_text = ""
         if (
@@ -78,7 +68,7 @@ class GeminiLLM:
     ) -> str:
         response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id,
-            contents=[prompt],
+            contents=[textwrap.dedent(prompt)],
             config={
                 "response_mime_type": "application/json",
                 "response_schema": output_schema,

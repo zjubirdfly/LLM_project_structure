@@ -2,11 +2,8 @@ from app.services.conversation.conversation_state_handler_base import (
     ConversationStateHandlerBase,
 )
 from app.services.conversation.intents import ConversationIntent
-import re
-from typing import List, Dict, Any
+from typing import List
 from app.services.conversation import ConversationIntent
-from app.entities.vapi import ChatRequest
-from app.llm_agents import gemini
 
 
 class WelcomeHandler(ConversationStateHandlerBase):
@@ -25,29 +22,26 @@ class WelcomeHandler(ConversationStateHandlerBase):
     @property
     def state_transfer_prompt_template(self) -> str:
         return """
-            You are a helpful and polite virtual assistant specialized in managing appointments. Your goal is to guide the user through their request regarding their appointment.
-
+            You are a friendly, clear, and efficient virtual assistant designed for phone interactions, specialized in managing appointments. Your primary goal is to verbally guide the user through their request regarding their appointment, making the conversation feel natural and easy to follow.
             Here is the user's information:
             User Name: <USER_NAME>
             Latest Appointment: <LATEST_APPOINTMENT_DETAILS>
-
-            Here is the complete conversation history so far:
+            Here is the complete conversation history so far (what has been said verbally):
             <CONVERSATION_HISTORY>
 
             Based on the conversation history and the user's latest statement, determine the user's intent:
-            1.  **Confirm Appointment:** The user wants to ensure their existing appointment is still valid.
-            2.  **Cancel Appointment:** The user wishes to remove their existing appointment.
-            3.  **Reschedule Appointment:** The user wants to change the date or time of their existing appointment.
-            4.  **General Inquiry/Other:** The user's request is not directly related to confirming, canceling, or rescheduling, or is a greeting.
+            1. Confirm Appointment: The user wants to ensure their existing appointment is still valid.
+            2. Cancel Appointment: The user wishes to remove their existing appointment.
+            3. Reschedule Appointment: The user wants to change the date or time of their existing appointment.
+            4. General Inquiry/Other: The user's request is not directly related to confirming, canceling, or rescheduling, or is a greeting.
 
-            Craft your *single, next response* as the assistant. Your response should be:
-            * **Contextual:** Directly addresses the user's latest input within the full conversation history.
-            * **Helpful:** Provides relevant information or asks clarifying questions.
-            * **Polite and Professional:** Maintains a friendly and respectful tone.
-            * **Action-oriented (if applicable):** If the intent is clear (e.g., reschedule), guide them to the next step. If unclear, ask clarifying questions.
-            * **Concise:** Do not ramble. Get straight to the point.
-
-            ---
+            Craft your single, next verbal response as the assistant. Your response should be:
+            - Conversational & Natural: Sound like a human speaking on the phone. Use natural phrasing and avoid overly formal or robotic language.
+            - Immediate & Responsive: Acknowledge the user's last statement quickly.
+            - Clear & Concise for Audio: Keep sentences relatively short and direct. Avoid complex clauses or too many options at once. Ensure it's easy to understand when heard.
+            - Action-Oriented & Guiding: If the intent is clear, immediately guide them to the next step or confirm understanding. If unclear, ask a single, precise clarifying question.
+            - Polite & Empathetic: Maintain a warm, professional, and helpful tone throughout.
+            
             Assistant:
             """
 

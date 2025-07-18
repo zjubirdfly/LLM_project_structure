@@ -46,7 +46,7 @@ class LlmResponseGenerator:
         ]
 
         handler = ConversationStateHandlerBase.get_handler(current_state)
-        latest_state = handler.get_next_state(context)
+        latest_state = await handler.get_next_state(context)
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(call_id, latest_state)
 

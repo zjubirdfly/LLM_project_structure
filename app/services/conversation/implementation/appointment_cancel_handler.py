@@ -31,7 +31,7 @@ class AppointmentCancelHandler(ConversationStateHandlerBase):
 
     @property
     def is_terminal_state(self) -> bool:
-        return False
+        return True
 
     @property
     def is_init_state(self) -> bool:

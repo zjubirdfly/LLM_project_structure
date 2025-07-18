@@ -58,68 +58,45 @@ class ConversationStateHandlerBase(ABC):
         print(f"Handler class for intent {intent}: {handler_cls}")
         return handler_cls(**kwargs) if handler_cls else None
 
-    @property
     @abstractmethod
-    def state_transfer_prompt_template(self) -> str:
-        """Subclasses must provide the state transfer prompt template."""
+    def get_state_transfer_prompt(self, context: Dict) -> str:
         pass
 
-    @property
     @abstractmethod
-    def response_prompt_template(self) -> str:
-        """Subclasses must provide the response generation prompt template."""
+    def get_response_prompt(self, context: Dict) -> str:
         pass
 
     @property
     @abstractmethod
     def potential_next_state(self) -> List[str]:
-        """Get next potential conversation state."""
         pass
 
-    async def get_next_state(self, request: Dict[str, Any]) -> ConversationIntent:
-        chat_request: ChatRequest = request["request"]
+    async def get_next_state(self, context: Dict[str, Any]) -> ConversationIntent:
+        chat_request: ChatRequest = context["request"]
         has_user_message = any(m.role == "user" for m in chat_request.messages)
         if not has_user_message:
             return ConversationIntent.WELCOME
-        conversation_history = self._get_conversation_from_messages(
-            chat_request.messages
-        )
-        prompt = self.state_transfer_prompt_template.replace(
-            "<CONVERSATION_HISTORY>", conversation_history
-        )
         return await gemini.generate_next_state(
             model_id=self.model_id,
-            prompt=prompt,
+            prompt=self.get_state_transfer_prompt(context),
             output_schema=self._CONVERSATIONAL_STATE_SCHEMA.replace(
                 "<NEXT_POTENTIAL_STATES>", str(self.potential_next_state)
             ),
         )
 
-    async def generate_response(self, request: Dict[str, Any]) -> StreamingResponse:
-        chat_request: ChatRequest = request["request"]
-        conversation_history = self._get_conversation_from_messages(
-            chat_request.messages
+    async def generate_response(self, context: Dict[str, Any]) -> StreamingResponse:
+        result = await gemini.generate_response(
+            model_id=self.model_id, prompt=self.get_response_prompt(context)
         )
-        user_latest_appointment = request["user_appointments"]
-        user_name = request["user_info"].first_name
-        prompt = (
-            self.response_prompt_template.replace(
-                "<CONVERSATION_HISTORY>", conversation_history
-            )
-            .replace("<USER_NAME>", user_name)
-            .replace(
-                "<LATEST_APPOINTMENT_DETAILS>",
-                self._appointment_to_string(user_latest_appointment),
-            )
-        )
-        result = await gemini.generate_response(model_id=self.model_id, prompt=prompt)
         print(f"DEBUG: result: {result}")
         return result
 
+    @property
     @abstractmethod
     def is_init_state(self) -> bool:
         raise NotImplementedError
 
+    @property
     @abstractmethod
     def is_terminal_state(self) -> bool:
         raise NotImplementedError

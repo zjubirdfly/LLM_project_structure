@@ -19,20 +19,20 @@ class AppointmentCancelHandler(ConversationStateHandlerBase):
     ):
         super().__init__(model_id)
 
-    @property
-    def state_transfer_prompt_template(self) -> str:
+    def get_state_transfer_prompt(self, context: Dict) -> str:
         pass
 
-    @property
-    def response_prompt_template(self) -> str:
+    def get_response_prompt(self, context: Dict) -> str:
         pass
 
     @property
     def potential_next_state(self) -> List[str]:
         pass
 
+    @property
     def is_terminal_state(self) -> bool:
         return False
 
+    @property
     def is_init_state(self) -> bool:
         return False

@@ -2,8 +2,10 @@ from app.services.conversation.conversation_state_handler_base import (
     ConversationStateHandlerBase,
 )
 from app.services.conversation.intents import ConversationIntent
-from typing import List
+import typing
 from app.services.conversation import ConversationIntent
+from typing import Type, Dict, Optional, Any, List
+from app.entities.vapi import ChatRequest
 
 
 class WelcomeHandler(ConversationStateHandlerBase):
@@ -19,9 +21,7 @@ class WelcomeHandler(ConversationStateHandlerBase):
     ):
         super().__init__(model_id)
 
-    @property
-    def state_transfer_prompt_template(self) -> str:
-        return """
+    _STATE_TRANSFER_PROMPT_TEMPLATE = """
             You are a friendly, clear, and efficient virtual assistant designed for phone interactions, specialized in managing appointments. Your primary goal is to verbally guide the user through their request regarding their appointment, making the conversation feel natural and easy to follow.
             Here is the user's information:
             User Name: <USER_NAME>
@@ -45,18 +45,43 @@ class WelcomeHandler(ConversationStateHandlerBase):
             Assistant:
             """
 
-    @property
-    def response_prompt_template(self) -> str:
-        return """
-                You are an expert conversational AI designed to determine the user's current intent based on the ongoing dialogue. Your goal is to select the most accurate and specific conversational state from a predefined list.
+    _RESPONSE_PROMPT_TEMPLATE = """
+            You are an expert conversational AI designed to determine the user's current intent based on the ongoing dialogue. Your goal is to select the most accurate and specific conversational state from a predefined list.
 
-                Here is the conversation history:
-                <CONVERSATION_HISTORY>
+            Here is the conversation history:
+            <CONVERSATION_HISTORY>
 
-                Analyze the full conversation history. Identify the single best conversational state that most accurately reflects the user's current intent.
+            Analyze the full conversation history. Identify the single best conversational state that most accurately reflects the user's current intent.
 
-                If the user's intent is unclear, ambiguous, or not enough information is available to determine the next step, you should default to the 'welcome' state.
+            If the user's intent is unclear, ambiguous, or not enough information is available to determine the next step, you should default to the 'welcome' state.
             """
+
+    def get_state_transfer_prompt(self, context: Dict) -> str:
+        chat_request: ChatRequest = context["request"]
+        conversation_history = self._get_conversation_from_messages(
+            chat_request.messages
+        )
+        return self._STATE_TRANSFER_PROMPT_TEMPLATE.replace(
+            "<CONVERSATION_HISTORY>", conversation_history
+        )
+
+    def get_response_prompt(self, context: Dict) -> str:
+        chat_request: ChatRequest = context["request"]
+        conversation_history = self._get_conversation_from_messages(
+            chat_request.messages
+        )
+        user_latest_appointment = context["user_appointments"]
+        user_name = context["user_info"].first_name
+        return (
+            self._RESPONSE_PROMPT_TEMPLATE.replace(
+                "<CONVERSATION_HISTORY>", conversation_history
+            )
+            .replace("<USER_NAME>", user_name)
+            .replace(
+                "<LATEST_APPOINTMENT_DETAILS>",
+                self._appointment_to_string(user_latest_appointment),
+            )
+        )
 
     @property
     def potential_next_state(self) -> List[str]:
@@ -67,8 +92,10 @@ class WelcomeHandler(ConversationStateHandlerBase):
             "appointment_reschedule",
         ]
 
+    @property
     def is_terminal_state(self) -> bool:
         return False
 
+    @property
     def is_init_state(self) -> bool:
         return True

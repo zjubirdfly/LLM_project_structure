@@ -33,25 +33,27 @@ class LlmResponseGenerator:
         user_appointments = self._load_current_appointment_from_user_id(
             user_info.user_id
         )
+        open_appointments = self._load_open_appointment()
         user_latest_appointment = user_appointments.appointments[-1]
+
+        context = {}
+        context["request"] = chat_request
+        context["user_info"] = user_info
+        context["user_latest_appointment"] = user_latest_appointment
+        context["open_appointments"] = open_appointments
         current_state = self.conversation_manager.get_conversation_state(call_id)[
             "ConversationIntent"
         ]
+
         handler = ConversationStateHandlerBase.get_handler(current_state)
-        latest_state = handler.get_next_state({"request": chat_request})
+        latest_state = handler.get_next_state(context)
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(call_id, latest_state)
 
         try:
 
             async def event_stream():
-                result_response = await handler.generate_response(
-                    {
-                        "request": chat_request,
-                        "user_appointments": user_latest_appointment,
-                        "user_info": user_info,
-                    }
-                )
+                result_response = await handler.generate_response(context)
                 print(f"DEBUG: result_response: {result_response}")
                 check_data = self._build_streaming_chunk(result_response)
                 streaming = f"data: {check_data}\n\n"

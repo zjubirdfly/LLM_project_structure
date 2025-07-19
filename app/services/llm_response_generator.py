@@ -4,16 +4,13 @@ from app.entities import (
     OpenAppointmentSlots,
     Appointment,
 )
-from typing import Optional, List, Dict, Any
+from typing import Optional
 import json
 from starlette.responses import StreamingResponse
 from datetime import datetime, timedelta
 import random
-import app.entities.vapi
 from .conversation import conversation_manager
 from .conversation import ConversationStateHandlerBase
-from app.llm_agents import gemini
-from google.genai.types import GenerateContentResponse
 from app.entities.vapi import ChatRequest
 import time
 from app.services.conversation.implementation import *
@@ -46,11 +43,13 @@ class LlmResponseGenerator:
             "ConversationIntent"
         ]
 
-        handler = ConversationStateHandlerBase.get_handler(
-            ConversationIntent(current_state)
+        handler: ConversationStateHandlerBase = (
+            ConversationStateHandlerBase.get_handler(ConversationIntent(current_state))
         )
-
-        latest_state = await handler.get_next_state(context)
+        if not handler.is_terminal_state:
+            latest_state = await handler.get_next_state(context)
+        else:
+            latest_state = current_state
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(
             call_id, ConversationIntent(latest_state)
@@ -83,7 +82,7 @@ class LlmResponseGenerator:
             "id": "chatcmpl-abc123",
             "object": "chat.completion.chunk",
             "created": int(time.time()),
-            "model": "gpt-4o-2024-05-13",
+            "model": "xinpt-1.0-flash",
             "choices": [
                 {
                     "index": 0,

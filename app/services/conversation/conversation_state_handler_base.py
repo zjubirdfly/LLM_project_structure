@@ -112,5 +112,5 @@ class ConversationStateHandlerBase(ABC):
 
     @property
     @abstractmethod
-    def is_terminal_state(seljsonf) -> bool:
+    def is_terminal_state(self) -> bool:
         raise NotImplementedError

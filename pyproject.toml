@@ -22,7 +22,8 @@ dependencies = [
     "httpx",
     "loguru",
     "vapi-server-sdk==1.5.0",
-    "openai"
+    "openai",
+    "google-genai (>=1.26.0,<2.0.0)"
 ]
 
 [build-system]

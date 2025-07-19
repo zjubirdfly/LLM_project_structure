@@ -46,6 +46,7 @@ class GeminiLLM:
         self.client = genai.Client(api_key=self.api_key)
 
     async def generate_response(self, model_id: str, prompt: str):
+        print(f"Generating response with model {model_id} and prompt: {prompt}")
         response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id, contents=[textwrap.dedent(prompt)]
         )

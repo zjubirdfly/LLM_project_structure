@@ -6,22 +6,39 @@ from starlette.responses import StreamingResponse
 from app.entities.vapi import Message
 from app.entities.vapi import ChatRequest
 from app.llm_agents import gemini
+import json
 
 
 class ConversationStateHandlerBase(ABC):
     _registry: Dict[ConversationIntent, Type["ConversationStateHandlerBase"]] = {}
 
+    @classmethod
+    def register_handler(cls, intent: ConversationIntent):
+        def decorator(handler_cls: Type["ConversationStateHandlerBase"]):
+            cls._registry[intent] = handler_cls
+            return handler_cls
+
+        return decorator
+
+    @classmethod
+    def get_handler(
+        cls, intent: ConversationIntent, **kwargs
+    ) -> Optional["ConversationStateHandlerBase"]:
+        handler_cls = cls._registry.get(intent)
+        print(f"Handler class for intent {intent}: {handler_cls}")
+        return handler_cls(**kwargs) if handler_cls else None
+
     _CONVERSATIONAL_STATE_SCHEMA = """{
-        "type": "object",
-        "properties": {
-            "state": {
-                "type": "string",
-                "description": "The determined conversational state based on user intent.",
-                "enum": <NEXT_POTENTIAL_STATES> 
-            }
-        },
-        "required": ["state"],
-    }"""
+            "type": "object",
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "description": "The determined conversational state based on user intent.",
+                    "enum": <NEXT_POTENTIAL_STATES> 
+                }
+            },
+            "required": ["state"]
+        }"""
 
     intent: ConversationIntent = None
     model_id: str = "gemini-2.5-flash-preview-05-20"
@@ -50,14 +67,6 @@ class ConversationStateHandlerBase(ABC):
     def _appointment_to_string(self, appointment: Appointment) -> str:
         return f"Appointment {appointment.name} from {appointment.start_time} to {appointment.end_time}\n"
 
-    @classmethod
-    def get_handler(
-        cls, intent: ConversationIntent, **kwargs
-    ) -> Optional["ConversationStateHandlerBase"]:
-        handler_cls = cls._registry.get(intent)
-        print(f"Handler class for intent {intent}: {handler_cls}")
-        return handler_cls(**kwargs) if handler_cls else None
-
     @abstractmethod
     def get_state_transfer_prompt(self, context: Dict) -> str:
         pass
@@ -76,12 +85,17 @@ class ConversationStateHandlerBase(ABC):
         has_user_message = any(m.role == "user" for m in chat_request.messages)
         if not has_user_message:
             return ConversationIntent.WELCOME
+        schema = json.loads(
+            self._CONVERSATIONAL_STATE_SCHEMA.replace(
+                "<NEXT_POTENTIAL_STATES>",
+                json.dumps(self.potential_next_state),
+            )
+        )
+        print(f"DEBUG: Schema for state transfer: {schema}")
         return await gemini.generate_next_state(
             model_id=self.model_id,
             prompt=self.get_state_transfer_prompt(context),
-            output_schema=self._CONVERSATIONAL_STATE_SCHEMA.replace(
-                "<NEXT_POTENTIAL_STATES>", str(self.potential_next_state)
-            ),
+            output_schema=schema,
         )
 
     async def generate_response(self, context: Dict[str, Any]) -> StreamingResponse:
@@ -98,5 +112,5 @@ class ConversationStateHandlerBase(ABC):
 
     @property
     @abstractmethod
-    def is_terminal_state(self) -> bool:
+    def is_terminal_state(seljsonf) -> bool:
         raise NotImplementedError

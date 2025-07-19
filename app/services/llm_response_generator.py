@@ -13,10 +13,11 @@ import app.entities.vapi
 from .conversation import conversation_manager
 from .conversation import ConversationStateHandlerBase
 from app.llm_agents import gemini
-from app.services.conversation.implementation import *
 from google.genai.types import GenerateContentResponse
 from app.entities.vapi import ChatRequest
 import time
+from app.services.conversation.implementation import *
+from app.services.conversation.intents import ConversationIntent
 
 
 class LlmResponseGenerator:
@@ -45,10 +46,15 @@ class LlmResponseGenerator:
             "ConversationIntent"
         ]
 
-        handler = ConversationStateHandlerBase.get_handler(current_state)
+        handler = ConversationStateHandlerBase.get_handler(
+            ConversationIntent(current_state)
+        )
+
         latest_state = await handler.get_next_state(context)
         print(f"Current state: {current_state}, Latest state: {latest_state}")
-        self.conversation_manager.update_conversation_state(call_id, latest_state)
+        self.conversation_manager.update_conversation_state(
+            call_id, ConversationIntent(latest_state)
+        )
 
         try:
 

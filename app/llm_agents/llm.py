@@ -6,6 +6,7 @@ from app.core import settings
 from openai import AsyncOpenAI
 from google.genai.types import GenerateContentResponse
 import textwrap
+from app.log_utils import Logger
 
 
 class GPTLLM:
@@ -44,8 +45,7 @@ class GeminiLLM:
         print(f"gemini api_key: {self.api_key}")
         self.client = genai.Client(api_key=self.api_key)
 
-    async def generate_response(self, model_id: str, prompt: str):
-        print(f"Generating response with model {model_id} and prompt: {prompt}")
+    async def generate_response(self, session_id: str, model_id: str, prompt: str):
         response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id, contents=[textwrap.dedent(prompt)]
         )
@@ -59,12 +59,29 @@ class GeminiLLM:
                 if part.text:
                     generated_text += part.text
         else:
+            Logger.log_session(
+                session_id=session_id,
+                message="Warning: No text content found in the non-streaming response.",
+                level="WARNING",
+            )
             print("Warning: No text content found in the non-streaming response.")
+        Logger.log_session(
+            session_id=session_id,
+            message=json.dumps(
+                {
+                    "model_id": model_id,
+                    "prompt": prompt,
+                    "response": str(response),
+                    "event": "generate_response",
+                }
+            ),
+            level="INFO",
+        )
 
         return generated_text
 
     async def generate_next_state(
-        self, model_id: str, prompt: str, output_schema: Dict
+        self, session_id: str, model_id: str, prompt: str, output_schema: Dict
     ) -> str:
         response: GenerateContentResponse = self.client.models.generate_content(
             model=model_id,
@@ -84,5 +101,22 @@ class GeminiLLM:
                 if part.text:
                     generated_text += part.text
         else:
+            Logger.log_session(
+                session_id=session_id,
+                message="Warning: No text content found in the non-streaming response.",
+                level="WARNING",
+            )
             print("Warning: No text content found in the non-streaming response.")
+        Logger.log_session(
+            session_id=session_id,
+            message=json.dumps(
+                {
+                    "model_id": model_id,
+                    "prompt": prompt,
+                    "response": str(response),
+                    "event": "generate_next_state",
+                }
+            ),
+            level="INFO",
+        )
         return json.loads(generated_text)["state"]

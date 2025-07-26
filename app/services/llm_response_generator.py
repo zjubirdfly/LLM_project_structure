@@ -15,6 +15,7 @@ from app.entities.vapi import ChatRequest
 import time
 from app.services.conversation.implementation import *
 from app.services.conversation.intents import ConversationIntent
+from app.log_utils import Logger
 
 
 class LlmResponseGenerator:
@@ -50,6 +51,12 @@ class LlmResponseGenerator:
             latest_state = await handler.get_next_state(context)
         else:
             latest_state = current_state
+
+        Logger.log_session(
+            session_id=call_id,
+            message=f"Current state: {current_state}, Latest state: {latest_state}",
+            level="INFO",
+        )
         print(f"Current state: {current_state}, Latest state: {latest_state}")
         self.conversation_manager.update_conversation_state(
             call_id, ConversationIntent(latest_state)
@@ -60,6 +67,11 @@ class LlmResponseGenerator:
             async def event_stream():
                 result_response = await handler.generate_response(context)
                 print(f"DEBUG: result_response: {result_response}")
+                Logger.log_session(
+                    session_id=call_id,
+                    message=f"Response generated for call_id {call_id}: {result_response}",
+                    level="INFO",
+                )
                 check_data = self._build_streaming_chunk(result_response)
                 streaming = f"data: {check_data}\n\n"
                 print(f"DEBUG: Streaming chunk: {streaming}")

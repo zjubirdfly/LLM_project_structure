@@ -2,7 +2,6 @@
 FastAPI application entry point.
 """
 
-import logging
 from typing import List, Tuple
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,12 +11,7 @@ from app.api.v1.outbound import router as outbound_router
 from app.api.v1.custom_llm_request_handler import (
     router as custom_llm_request_handler_router,
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from app.log_utils import Logger
 
 
 def create_app() -> FastAPI:
@@ -38,6 +32,7 @@ def create_app() -> FastAPI:
     app.include_router(
         custom_llm_request_handler_router, tags=["Custom LLM Request Handler"]
     )
+    Logger.log_system("Created FastAPI application with CORS enabled")
     return app
 
 
@@ -49,12 +44,12 @@ def list_routes(app: FastAPI) -> List[Tuple[str, str]]:
 def main() -> None:
     """Main entry point for the application."""
     # Print registered endpoints
-    logger.info("Registered endpoints:")
+    Logger.log_system("Registered endpoints:")
     for path, methods in list_routes(app):
-        logger.info(f"Endpoint: {path}, Methods: {methods}")
+        Logger.log_system(f"Endpoint: {path}, Methods: {methods}")
 
     # Start the server
-    logger.info(f"Starting server on port {settings.port}")
+    Logger.log_system(f"Starting server on port {settings.port}")
     uvicorn.run("app.main:app", host="0.0.0.0", port=settings.port, reload=True)
 
 

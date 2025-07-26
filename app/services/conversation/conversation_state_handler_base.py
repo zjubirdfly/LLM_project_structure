@@ -93,6 +93,7 @@ class ConversationStateHandlerBase(ABC):
         )
         print(f"DEBUG: Schema for state transfer: {schema}")
         return await gemini.generate_next_state(
+            session_id=chat_request.call.id,
             model_id=self.model_id,
             prompt=self.get_state_transfer_prompt(context),
             output_schema=schema,
@@ -100,7 +101,9 @@ class ConversationStateHandlerBase(ABC):
 
     async def generate_response(self, context: Dict[str, Any]) -> StreamingResponse:
         result = await gemini.generate_response(
-            model_id=self.model_id, prompt=self.get_response_prompt(context)
+            session_id=context["request"].call.id,
+            model_id=self.model_id,
+            prompt=self.get_response_prompt(context),
         )
         print(f"DEBUG: result: {result}")
         return result

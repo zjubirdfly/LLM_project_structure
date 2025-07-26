@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 from app.storage import cache_manager
-from app.logging.logger import Logger
+from app.log_utils import Logger
 from .intents import ConversationIntent
 
 
@@ -19,7 +19,6 @@ class ConversationManager:
             )
 
         state_data = self.cache.get(call_id)
-        print(f"Conversation_state {state_data}")
         return state_data
 
     def update_conversation_state(
@@ -30,9 +29,9 @@ class ConversationManager:
             return self.cache.set(call_id, {"ConversationIntent": new_state.value})
 
         except Exception as e:
-            Logger.log_json(
-                "conversation",
-                "error",
-                {"call_id": call_id, "error": str(e), "operation": "set_state"},
+            Logger.log_session(
+                session_id=call_id,
+                message=f"Update_conversation_state error: str(e), operation: set_state",
+                level="ERROR",
             )
             return False

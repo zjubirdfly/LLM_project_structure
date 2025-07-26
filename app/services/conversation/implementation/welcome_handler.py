@@ -1,11 +1,9 @@
 from app.services.conversation.conversation_state_handler_base import (
     ConversationStateHandlerBase,
 )
-from app.services.conversation.implementation import welcome_handler
 from app.services.conversation.intents import ConversationIntent
-import typing
 from app.services.conversation import ConversationIntent
-from typing import Type, Dict, Optional, Any, List
+from typing import Dict, List
 from app.entities.vapi import ChatRequest
 
 

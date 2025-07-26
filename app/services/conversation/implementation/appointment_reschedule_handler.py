@@ -2,8 +2,7 @@ from app.services.conversation.conversation_state_handler_base import (
     ConversationStateHandlerBase,
 )
 
-from typing import List, Dict, Any
-from app.llm_agents import GPTLLM, GeminiLLM
+from typing import List, Dict
 from app.services.conversation import ConversationIntent
 from typing import Dict, List
 from app.entities.vapi import ChatRequest

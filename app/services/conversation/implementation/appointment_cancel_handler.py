@@ -4,7 +4,6 @@ from app.services.conversation.conversation_state_handler_base import (
 from typing import List, Dict
 from app.services.conversation import ConversationIntent
 from app.entities.vapi import ChatRequest
-from app.entities import OpenAppointmentSlots
 
 
 class AppointmentCancelHandler(ConversationStateHandlerBase):

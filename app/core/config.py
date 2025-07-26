@@ -28,22 +28,9 @@ class Settings(BaseSettings):
         "", alias="GOOGLE_API_KEY", description="API key for Google services"
     )
     logging_parent_folder: str = Field(
-        "app/services/logging/",
+        "logging/",
         alias="LOGGING_PARENT_FOLDER",
         description="Parent folder for application logs",
-    )
-    logging_service_name: str = Field(
-        "testService",
-        alias="LOGGING_SERVICE_NAME",
-        description="Name of the service for logging",
-    )
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=True,
-        extra="ignore",
-        populate_by_name=True,
     )
 
 

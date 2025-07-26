@@ -1,9 +1,8 @@
 from typing import Dict
-import os
 
 import json
 from google import genai
-from app.core.config import settings
+from app.core import settings
 from openai import AsyncOpenAI
 from google.genai.types import GenerateContentResponse
 import textwrap

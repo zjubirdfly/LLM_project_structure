@@ -1,13 +1,5 @@
-import datetime
-import json
-import time
-from fastapi import APIRouter, Request
-from openai import AsyncOpenAI
-import os
-from starlette.responses import StreamingResponse
+from fastapi import APIRouter
 from app.entities.vapi import ChatRequest
-from app.core.config import settings
-from dotenv import load_dotenv
 from app.services import llm_response_generator
 
 router = APIRouter()

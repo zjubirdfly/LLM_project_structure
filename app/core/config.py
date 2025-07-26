@@ -3,7 +3,10 @@ Core configuration for the application.
 """
 
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -33,6 +36,6 @@ class Settings(BaseSettings):
         description="Parent folder for application logs",
     )
 
-
-# Create a singleton settings object
-settings = Settings()
+    class Config:
+        env_file = BASE_DIR / ".env"
+        env_file_encoding = "utf-8"

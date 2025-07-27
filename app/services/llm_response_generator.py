@@ -81,7 +81,6 @@ class LlmResponseGenerator:
                     yield streaming
                 finally:
                     if handler.is_terminal_state:
-                        print(f"DEBUG: END CALL")
                         await CallSessionManager.get_instance().end_call(
                             call_id=call_id,
                             assistant_id=call.assistantId,

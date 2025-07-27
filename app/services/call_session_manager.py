@@ -46,12 +46,7 @@ class CallSessionManager:
     async def end_call(
         self, call_id: str, assistant_id: str, number: str, phone_number_id: str
     ):
-        monitor: Monitor | None = await self._get_vapi_phone_monitor(
-            call_id=call_id,
-            assistant_id=assistant_id,
-            number=number,
-            phone_number_id=phone_number_id,
-        )
+        monitor: Monitor | None = await self._get_vapi_phone_monitor(call_id=call_id)
 
         if monitor is None:
             Logger.log_session(

@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Message(BaseModel):
@@ -29,11 +29,8 @@ class Customer(BaseModel):
 
 
 class Monitor(BaseModel):
-    listenUrl: str = Field(..., alias="listenUrl")
-    controlUrl: str = Field(..., alias="controlUrl")
-
-    class Config:
-        allow_population_by_field_name = True
+    listenUrl: str
+    controlUrl: str
 
 
 class Call(BaseModel):
@@ -91,7 +88,3 @@ class CallControlResponse(BaseModel):
     phoneCallProviderId: str
     phoneCallTransport: str
     monitor: Optional[Monitor] = None
-
-    class Config:
-        allow_population_by_field_name = True
-        extra = "allow"  # ignore unexpected fields

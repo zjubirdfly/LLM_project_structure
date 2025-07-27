@@ -1,15 +1,6 @@
 from .user import UserInfo
 from .appointment import UserScheduleHistory, OpenAppointmentSlots, Appointment
-from .vapi import (
-    ChatRequest,
-    Message,
-    Call,
-    Customer,
-    PhoneNumber,
-    Tool,
-    Function,
-    Parameters,
-)
+from .vapi import *
 
 __all__ = [
     "Appointment",
@@ -24,4 +15,5 @@ __all__ = [
     "Tool",
     "Function",
     "Parameters",
+    "CallControlResponse",
 ]

@@ -16,6 +16,7 @@ import time
 from app.services.conversation.implementation import *
 from app.services.conversation.intents import ConversationIntent
 from app.log_utils import Logger
+from app.services.call_session_manager import CallSessionManager
 
 
 class LlmResponseGenerator:
@@ -27,7 +28,8 @@ class LlmResponseGenerator:
         self, chat_request: ChatRequest
     ) -> StreamingResponse:
         phone_number = chat_request.phoneNumber
-        call_id = chat_request.call.id
+        call = chat_request.call
+        call_id = call.id
         user_info = self._load_user_info_from_phone_number(phone_number)
         user_appointments = self._load_current_appointment_from_user_id(
             user_info.user_id
@@ -65,17 +67,32 @@ class LlmResponseGenerator:
         try:
 
             async def event_stream():
-                result_response = await handler.generate_response(context)
-                print(f"DEBUG: result_response: {result_response}")
-                Logger.log_session(
-                    session_id=call_id,
-                    message=f"Response generated for call_id {call_id}: {result_response}",
-                    level="INFO",
-                )
-                check_data = self._build_streaming_chunk(result_response)
-                streaming = f"data: {check_data}\n\n"
-                print(f"DEBUG: Streaming chunk: {streaming}")
-                yield streaming
+                try:
+                    result_response = await handler.generate_response(context)
+                    print(f"DEBUG: result_response: {result_response}")
+                    Logger.log_session(
+                        session_id=call_id,
+                        message=f"Response generated for call_id {call_id}: {result_response}",
+                        level="INFO",
+                    )
+                    check_data = self._build_streaming_chunk(result_response)
+                    streaming = f"data: {check_data}\n\n"
+                    print(f"DEBUG: Streaming chunk: {streaming}")
+                    yield streaming
+                finally:
+                    if handler.is_terminal_state:
+                        print(f"DEBUG: END CALL")
+                        await CallSessionManager.get_instance().end_call(
+                            call_id=call_id,
+                            assistant_id=call.assistantId,
+                            number=call.customer.number,
+                            phone_number_id=call.phoneNumberId,
+                        )
+                        Logger.log_session(
+                            session_id=call_id,
+                            message="Call end triggered after streaming response completed.",
+                            level="INFO",
+                        )
 
             return StreamingResponse(
                 event_stream(),

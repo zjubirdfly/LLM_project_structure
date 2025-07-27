@@ -14,10 +14,8 @@ class Settings(BaseSettings):
     Application settings loaded from environment variables.
     """
 
-    port: int = Field(8000, alias="PORT", description="Port number for the server")
-    debug: bool = Field(False, alias="DEBUG", description="Debug mode flag")
     vapi_base_url: str = Field(
-        "https://api.vapi.ai",
+        "",
         alias="VAPI_BASE_URL",
         description="Base URL for the VAPI service",
     )
